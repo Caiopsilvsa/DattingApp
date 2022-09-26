@@ -40,6 +40,8 @@ namespace DattingApp
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "DattingApp", Version = "v1" });
             });
+
+            services.AddCors();
         }
 
 
@@ -57,6 +59,8 @@ namespace DattingApp
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            
+            app.UseCors(x=> x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200"));
 
             app.UseAuthorization();
 
