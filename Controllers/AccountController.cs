@@ -21,8 +21,8 @@ namespace DattingApp.Controllers
             this._tokenInterface = TokenInterface;
         }
 
-        [HttpPost("registrer")]
-        public async Task<ActionResult<UseDto>> Register([FromBody] UserDto user)
+        [HttpPost("Register")]
+        public async Task<ActionResult<UseDto>> Register(UserDto user)
         {
             if (await UserExistsByName(user))
             {
