@@ -1,5 +1,8 @@
-﻿using DattingApp.Data;
+﻿using AutoMapper;
+using DattingApp.Data;
+using DattingApp.Dto;
 using DattingApp.Entities;
+using DattingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,32 +13,40 @@ using System.Threading.Tasks;
 
 namespace DattingApp.Controllers
 {
-   
     public class UsersController:BaseController
     {
-        private readonly DataContext _dataContext;
-        public UsersController( DataContext dataContext)
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
+        public UsersController( IUserRepository userRepository, IMapper mapper)
         {
-            this._dataContext = dataContext;
+            this._userRepository = userRepository;
+            this._mapper = mapper;
         }
 
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
+        //[Authorize]
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
         {
-            var users = await _dataContext.Users.ToListAsync();
+            var usersMapped = _mapper.Map<IEnumerable<MemberDto>>(await _userRepository.GetAllMembersAsync());
 
-            return Ok(users);
+            return Ok(usersMapped); 
         }
 
-        [HttpGet("{Userid}")]
-        [Authorize]
-        public async Task<ActionResult<AppUser>> GetUser(int Userid)
+        [HttpGet("{userid}")]
+        //[Authorize]
+        public async Task<ActionResult<MemberDto>> GetUserById(int userid)
         {
-            var user = await _dataContext.Users.Where(u => u.Id == Userid).FirstOrDefaultAsync();
+            var userMapped = _mapper.Map<MemberDto>(await _userRepository.GetMemberById(userid));
 
-            return Ok(user);
-        } 
-        
+            return Ok(userMapped);
+        }
+
+        [HttpGet("user/{username}")]
+        public async Task<ActionResult<MemberDto>> GetUserByName(string username)
+        {
+            var userMapped = _mapper.Map<MemberDto>(await _userRepository.GetMemberByNameAsync(username));
+
+            return Ok(userMapped);
+        }
     }
 }

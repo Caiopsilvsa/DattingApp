@@ -1,6 +1,8 @@
 using DattingApp.Data;
+using DattingApp.Helpers;
 using DattingApp.Interfaces;
 using DattingApp.Middleware;
+using DattingApp.Repositories;
 using DattingApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -38,7 +40,9 @@ namespace DattingApp
 
             services.AddControllers();
             services.AddScoped<ITokenInterface, TokenService>();
-            
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddAutoMapper(typeof(MappingProfile).Assembly);
+
             services.AddDbContext<DataContext>(options =>
             {
                 options.UseSqlite(_config.GetConnectionString("DefaultConnection"));

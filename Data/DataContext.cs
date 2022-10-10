@@ -1,6 +1,5 @@
 ﻿using DattingApp.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography.X509Certificates;
 
 namespace DattingApp.Data
 {
@@ -11,5 +10,6 @@ namespace DattingApp.Data
         }
 
         public DbSet<AppUser> Users { get; set; }
+        public DbSet<Photo> Photos { get; set; }
     }
 }
