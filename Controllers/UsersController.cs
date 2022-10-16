@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DattingApp.Controllers
@@ -23,8 +24,8 @@ namespace DattingApp.Controllers
             this._mapper = mapper;
         }
 
-        [HttpGet]
-        //[Authorize]
+        [HttpGet("users")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
         {
             var usersMapped = _mapper.Map<IEnumerable<MemberDto>>(await _userRepository.GetAllMembersAsync());
@@ -33,7 +34,7 @@ namespace DattingApp.Controllers
         }
 
         [HttpGet("{userid}")]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult<MemberDto>> GetUserById(int userid)
         {
             var userMapped = _mapper.Map<MemberDto>(await _userRepository.GetMemberById(userid));
@@ -47,6 +48,23 @@ namespace DattingApp.Controllers
             var userMapped = _mapper.Map<MemberDto>(await _userRepository.GetMemberByNameAsync(username));
 
             return Ok(userMapped);
+        }
+
+
+        [HttpPut(("user"))]
+        public async Task<ActionResult<bool>> UpdateMember(MemberUpdateDto member)
+        {
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var user = await _userRepository.GetMemberByNameAsync(username);
+
+            _mapper.Map(member, user);
+
+            _userRepository.UpdateMember(user);
+
+            if (await _userRepository.SaveChanges()) return NoContent();
+
+            return BadRequest("Failed to update user");
         }
     }
 }

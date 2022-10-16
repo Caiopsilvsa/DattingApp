@@ -11,7 +11,9 @@ namespace DattingApp.Interfaces
         Task<AppUser> GetMemberByNameAsync(string name);
         Task<AppUser> GetMemberById(int id);
         Task<IEnumerable<AppUser>> GetAllMembersAsync();
+        void UpdateMember(AppUser user);
 
+        Task<bool> SaveChanges();
 
     }
 }

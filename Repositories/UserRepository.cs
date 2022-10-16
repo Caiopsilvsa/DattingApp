@@ -40,5 +40,15 @@ namespace DattingApp.Repositories
                 .Where(n=> n.UserName == name)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<bool> SaveChanges()
+        {
+            return await _dataContext.SaveChangesAsync() > 0;
+        }
+
+        public void UpdateMember(AppUser user)
+        {
+            _dataContext.Entry(user).State = EntityState.Modified;
+        }
     }
 }
