@@ -41,6 +41,7 @@ namespace DattingApp
             services.AddControllers();
             services.AddScoped<ITokenInterface, TokenService>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<LogUserActivity>();
             services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
             services.AddDbContext<DataContext>(options =>

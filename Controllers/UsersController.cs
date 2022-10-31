@@ -2,8 +2,11 @@
 using DattingApp.Data;
 using DattingApp.Dto;
 using DattingApp.Entities;
+using DattingApp.Extensions;
+using DattingApp.Helpers;
 using DattingApp.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections;
@@ -26,11 +29,21 @@ namespace DattingApp.Controllers
 
         [HttpGet("users")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery] UserParams userParams)
         {
-            var usersMapped = _mapper.Map<IEnumerable<MemberDto>>(await _userRepository.GetAllMembersAsync());
+            var userName = User.GetUsername();
+            var user = await _userRepository.GetMemberByNameAsync(userName);
+            userParams.CurrentUserName = user.UserName;
 
-            return Ok(usersMapped); 
+            if (string.IsNullOrEmpty(userParams.Gender))
+                userParams.Gender = user.Gender == "male" ? "female" : "male";
+
+            var users = await _userRepository.GetMembersAsync(userParams);
+
+            Response.AddPaginationHeader(users.CurrentPage, users.PageSize,
+                users.TotalCount, users.TotalPages);
+
+            return Ok(users);
         }
 
         [HttpGet("{userid}")]
@@ -43,15 +56,15 @@ namespace DattingApp.Controllers
         }
 
         [HttpGet("user/{username}")]
-        public async Task<ActionResult<MemberDto>> GetUserByName(string username)
+        public async Task<ActionResult<AppUser>> GetUserByName(string username)
         {
-            var userMapped = _mapper.Map<MemberDto>(await _userRepository.GetMemberByNameAsync(username));
+            var user = await _userRepository.GetMemberByNameAsync(username);
 
-            return Ok(userMapped);
+            return Ok(user);
         }
 
 
-        [HttpPut(("user"))]
+        [HttpPut("user")]
         public async Task<ActionResult<bool>> UpdateMember(MemberUpdateDto member)
         {
             var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

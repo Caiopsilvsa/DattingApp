@@ -1,7 +1,9 @@
-﻿using DattingApp.Data;
+﻿using AutoMapper;
+using DattingApp.Data;
 using DattingApp.Dto;
 using DattingApp.Entities;
 using DattingApp.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -15,10 +17,12 @@ namespace DattingApp.Controllers
     {
         private readonly DataContext _dataContext;
         private readonly ITokenInterface _tokenInterface;
-        public AccountController(DataContext dataContext, ITokenInterface TokenInterface)
+        private readonly IMapper _mapper;
+        public AccountController(DataContext dataContext, ITokenInterface TokenInterface, IMapper mapper)
         {
             this._dataContext = dataContext;
             this._tokenInterface = TokenInterface;
+            this._mapper = mapper;
         }
 
         [HttpPost("Register")]
@@ -28,22 +32,25 @@ namespace DattingApp.Controllers
             {
                 return BadRequest("Usuario ja existe");
             }
+
             using var hmac = new HMACSHA512();
-            
+
             var newUser = new AppUser
             {
-                UserName = user.UserName,
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password)),
-                PasswordSalt = hmac.Key
+               UserName = user.UserName,
+               PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password)),
+               PasswordSalt = hmac.Key
             };
 
-            _dataContext.AddAsync(newUser);
-            _dataContext.SaveChangesAsync();
+            _dataContext.Users.Add(newUser);
+            await _dataContext.SaveChangesAsync();
 
             return new UseDto
             {
                 UserName = newUser.UserName,
-                Token = _tokenInterface.CreateToken(newUser)
+                Token = _tokenInterface.CreateToken(newUser),
+                KnowAs = newUser.KnownAs,
+                Gender = newUser.Gender
             };
         }
 
@@ -72,7 +79,9 @@ namespace DattingApp.Controllers
             return new UseDto
             {
                 UserName = testUser.UserName,
-                Token = _tokenInterface.CreateToken(testUser)
+                Token = _tokenInterface.CreateToken(testUser),
+                KnowAs = testUser.KnownAs,
+                Gender = testUser.Gender
             };
         }
 
